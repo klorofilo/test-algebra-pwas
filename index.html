@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0f0f0e" />
+<title>PWA Collection</title>
+<style>
+  :root {
+    --bg:#0f0f0e; --surface:#1a1a18; --surface2:#242421;
+    --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.16);
+    --text:#f2f0e9; --text2:#a8a69c; --text3:#6f6e67;
+    --accent:#7f77dd; --accent-bg:rgba(127,119,221,0.15);
+    --radius:14px;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; }
+  body { min-height:100vh; padding:env(safe-area-inset-top) 20px calc(env(safe-area-inset-bottom) + 24px);
+    max-width:520px; margin:0 auto; }
+  header { padding:36px 0 24px; text-align:center; }
+  header h1 { font-size:24px; font-weight:600; margin:0; letter-spacing:-0.02em; }
+  header p { font-size:14px; color:var(--text3); margin:8px 0 0; }
+  .grid { display:flex; flex-direction:column; gap:12px; }
+  a.appcard {
+    display:flex; align-items:center; gap:16px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:18px 18px;
+    text-decoration:none; color:inherit;
+    transition:border-color 0.14s, transform 0.08s, background 0.14s;
+  }
+  a.appcard:hover { border-color:var(--border2); background:var(--surface2); }
+  a.appcard:active { transform:scale(0.985); }
+  .icon {
+    flex:0 0 auto; width:52px; height:52px; border-radius:13px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; font-weight:700;
+    background:var(--accent-bg); color:var(--accent);
+  }
+  .meta { flex:1; min-width:0; }
+  .meta h2 { font-size:17px; font-weight:600; margin:0 0 3px; letter-spacing:-0.01em; }
+  .meta p { font-size:13.5px; color:var(--text2); margin:0; line-height:1.45; }
+  .chev { flex:0 0 auto; color:var(--text3); font-size:20px; }
+  .empty { text-align:center; color:var(--text3); font-size:14px; padding:40px 0; line-height:1.6; }
+  footer { margin-top:32px; text-align:center; font-size:12px; color:var(--text3); line-height:1.7; }
+  footer code { background:var(--surface); padding:2px 6px; border-radius:5px; font-size:11.5px; color:var(--text2); }
+</style>
+</head>
+<body>
+<header>
+  <h1>PWA Collection</h1>
+  <p>Tap an app to open · install from its own page</p>
+</header>
+
+<div class="grid" id="grid"></div>
+
+<footer id="footer"></footer>
+
+<script>
+  // ─────────────────────────────────────────────────────────────
+  //  Add a new app by adding one entry here. `path` is the folder
+  //  name relative to this page (each app lives in its own folder
+  //  as index.html). `icon` is any short character or emoji.
+  // ─────────────────────────────────────────────────────────────
+  var APPS = [
+    {
+      name: "Brain Trainer",
+      desc: "Mental arithmetic, order-of-magnitude estimation, and physical-quantity drills.",
+      path: "brain-trainer/",
+      icon: "\u2211"   // ∑
+    }
+    // {
+    //   name: "Falling Equations",
+    //   desc: "Spectroscopy equation reflex game.",
+    //   path: "falling-equations/",
+    //   icon: "\u2193"
+    // },
+  ];
+
+  var grid = document.getElementById("grid");
+  if (!APPS.length){
+    grid.innerHTML = '<div class="empty">No apps yet.<br>Add an entry to the APPS list in index.html.</div>';
+  } else {
+    APPS.forEach(function(app){
+      var a = document.createElement("a");
+      a.className = "appcard";
+      a.href = app.path;
+      a.innerHTML =
+        '<div class="icon">'+app.icon+'</div>' +
+        '<div class="meta"><h2></h2><p></p></div>' +
+        '<div class="chev">\u203A</div>';
+      a.querySelector("h2").textContent = app.name;
+      a.querySelector("p").textContent = app.desc;
+      grid.appendChild(a);
+    });
+  }
+
+  document.getElementById("footer").innerHTML =
+    'Served free over HTTPS via GitHub Pages.<br>' +
+    'Each app installs separately: open it, then use <b>Add to Home Screen</b> (iPhone) or <b>Install app</b> (Android).';
+</script>
+</body>
+</html>
