@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#0f0f0e" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Brain Trainer" />
+<title>Brain Trainer</title>
+<style>
+  :root {
+    --bg:#0f0f0e; --surface:#1a1a18; --surface2:#242421;
+    --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.16);
+    --text:#f2f0e9; --text2:#a8a69c; --text3:#6f6e67;
+    --accent:#7f77dd; --accent-bg:rgba(127,119,221,0.15);
+    --success:#5dcaa5; --warning:#ef9f27; --danger:#e24b4a;
+    --radius:14px;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; overscroll-behavior:none; }
+  body { min-height:100vh; padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 16px);
+    max-width:480px; margin:0 auto; }
+  header { padding:20px 0 14px; text-align:center; }
+  header h1 { font-size:19px; font-weight:600; margin:0; letter-spacing:-0.01em; }
+  header p { font-size:13px; color:var(--text3); margin:4px 0 0; }
+  .seg { display:flex; gap:6px; margin-bottom:10px; }
+  .seg button { flex:1; padding:11px 6px; font-size:14px; font-weight:500;
+    background:var(--surface); color:var(--text2); border:1px solid var(--border);
+    border-radius:11px; cursor:pointer; transition:all 0.12s ease; }
+  .seg button.active { background:var(--accent-bg); color:var(--text); border-color:var(--accent); }
+  .seg.small button { font-size:12.5px; padding:9px 4px; }
+  .seg.wrap { flex-wrap:wrap; }
+  .seg.wrap button { flex:1 1 28%; min-width:0; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:26px 18px; text-align:center; margin:14px 0 14px; min-height:120px;
+    display:flex; flex-direction:column; justify-content:center; }
+  .qlabel { font-size:12px; color:var(--text3); margin:0 0 10px; text-transform:uppercase; letter-spacing:0.04em; }
+  .question { font-size:22px; font-weight:600; margin:0; line-height:1.35; letter-spacing:-0.01em; word-break:break-word; }
+  .question.big { font-size:26px; }
+  .unit { font-size:13px; color:var(--text3); margin:12px 0 0; font-style:italic; }
+  .inputrow { display:flex; gap:8px; margin-bottom:10px; }
+  input[type=text] { flex:1; padding:14px 16px; font-size:17px; background:var(--surface); color:var(--text);
+    border:1px solid var(--border2); border-radius:11px; outline:none; transition:border-color 0.12s; }
+  input[type=text]:focus { border-color:var(--accent); }
+  input::placeholder { color:var(--text3); }
+  button.act { padding:14px 18px; font-size:15px; font-weight:600; border-radius:11px; cursor:pointer; border:none;
+    transition:transform 0.08s,opacity 0.12s; }
+  button.act:active { transform:scale(0.97); }
+  .primary { background:var(--accent); color:#fff; min-width:92px; }
+  .ghost { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+  .feedback { min-height:48px; font-size:14.5px; line-height:1.5; padding:4px 4px 0; }
+  .fb-ok { color:var(--success); } .fb-warn { color:var(--warning); }
+  .fb-bad { color:var(--danger); } .fb-muted { color:var(--text2); }
+  .btnrow { display:flex; gap:8px; margin-top:6px; }
+  .btnrow button { flex:1; }
+  .stats { display:flex; justify-content:space-around; margin-top:20px; padding:16px 0;
+    border-top:1px solid var(--border); font-size:13px; color:var(--text2); }
+  .stats .v { display:block; font-size:22px; font-weight:600; color:var(--text); margin-top:3px; }
+  #install { display:none; width:100%; margin-top:16px; padding:13px; font-size:14px; font-weight:500;
+    background:var(--accent-bg); color:var(--text); border:1px solid var(--accent); border-radius:11px; cursor:pointer; }
+  .hint { font-size:12px; color:var(--text3); text-align:center; margin-top:18px; line-height:1.6; }
+  .domlabel { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.05em; margin:6px 0 6px; text-align:center; display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Brain Trainer</h1>
+  <p>Arithmetic · magnitude · physical estimation</p>
+</header>
+
+<div class="seg" id="modeSeg">
+  <button data-mode="exact" class="active">Exact</button>
+  <button data-mode="mag">Magnitude</button>
+  <button data-mode="phys">Physics</button>
+</div>
+
+<div class="seg small" id="diffSeg">
+  <button data-diff="1">Easy</button>
+  <button data-diff="2" class="active">Medium</button>
+  <button data-diff="3">Hard</button>
+</div>
+
+<p class="domlabel" id="domlabel">Domain</p>
+<div class="seg small wrap" id="domSeg" style="display:none;">
+  <button data-dom="all" class="active">All</button>
+  <button data-dom="ultrafast">Ultrafast</button>
+  <button data-dom="nano">Nano</button>
+  <button data-dom="energy">Energy</button>
+  <button data-dom="thermo">Thermo</button>
+  <button data-dom="spectro">Spectro</button>
+</div>
+
+<div class="card">
+  <p class="qlabel" id="qlabel">Compute exactly</p>
+  <p class="question" id="question">Loading…</p>
+  <p class="unit" id="unit"></p>
+</div>
+
+<div class="inputrow">
+  <input type="text" id="answer" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Your answer" />
+  <button class="act primary" id="check">Check</button>
+</div>
+
+<div class="feedback" id="feedback"></div>
+
+<div class="btnrow">
+  <button class="act ghost" id="next">New problem</button>
+  <button class="act ghost" id="reveal">Show answer</button>
+</div>
+
+<div class="stats">
+  <div>Streak<span class="v" id="streak">0</span></div>
+  <div>Solved<span class="v" id="solved">0</span></div>
+  <div>Avg err<span class="v" id="avgerr">–</span></div>
+</div>
+
+<button id="install">Install app to home screen</button>
+<p class="hint" id="hint">
+  On iPhone: tap Share → "Add to Home Screen".<br>
+  On Android: menu → "Install app". Works offline once added.
+</p>
+
+<script>
+(function(){
+  "use strict";
+
+  var store = {};
+  try { store = JSON.parse(localStorage.getItem("bt_stats")||"{}"); } catch(e){ store = {}; }
+  var solved = store.solved||0, streak = 0, errs = store.errs||[];
+  function save(){ try { localStorage.setItem("bt_stats", JSON.stringify({solved:solved, errs:errs.slice(-50)})); } catch(e){} }
+
+  var mode = "exact", diff = 2, domain = "all", current = null;
+
+  function rnd(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function rndf(a,b){ return a + Math.random()*(b-a); }
+  function pick(a){ return a[rnd(0,a.length-1)]; }
+  function fmt(x){
+    if (x === 0) return "0";
+    if (Math.abs(x) >= 1e5 || Math.abs(x) < 1e-2) return x.toExponential(2);
+    return (Math.round(x*1000)/1000).toLocaleString();
+  }
+  // parse answers like 3.5e-19, 3.5x10^-19, 1e8, "8" (for exponents), 2.3E4
+  function parseNum(raw){
+    raw = raw.trim().replace(/,/g,"").replace(/\s/g,"");
+    raw = raw.replace(/[×x]\s*10\s*\^?/i,"e").replace(/\*10\^?/i,"e").replace(/10\^/i,"1e");
+    return parseFloat(raw);
+  }
+
+  // ===== EXACT =====
+  function exactProblem(){
+    var t,a,b,c,ans,q;
+    if (diff===1){
+      t=pick(["mul","div","add","sub"]);
+      if(t==="mul"){a=rnd(12,99);b=rnd(3,12);ans=a*b;q=a+" × "+b;}
+      else if(t==="div"){b=rnd(3,12);ans=rnd(11,99);a=b*ans;q=a+" ÷ "+b;}
+      else if(t==="add"){a=rnd(120,999);b=rnd(120,999);ans=a+b;q=a+" + "+b;}
+      else{a=rnd(300,999);b=rnd(50,299);ans=a-b;q=a+" − "+b;}
+    } else if (diff===2){
+      t=pick(["mul","div","pct","mix","sq"]);
+      if(t==="mul"){a=rnd(120,999);b=rnd(12,99);ans=a*b;q=a+" × "+b;}
+      else if(t==="div"){b=rnd(12,40);ans=rnd(20,400);a=b*ans;q=a+" ÷ "+b;}
+      else if(t==="pct"){a=pick([5,12.5,15,25,37.5,40,60,75]);b=rnd(40,80)*20;ans=a/100*b;q=a+"% of "+b;}
+      else if(t==="sq"){a=rnd(13,40);ans=a*a;q=a+"²";}
+      else{a=rnd(20,99);b=rnd(20,99);c=rnd(10,50);ans=a*b-c;q=a+" × "+b+" − "+c;}
+    } else {
+      t=pick(["mul","div","sq","mix","cube"]);
+      if(t==="mul"){a=rnd(1200,9999);b=rnd(120,999);ans=a*b;q=a+" × "+b;}
+      else if(t==="div"){b=rnd(23,97);ans=rnd(200,9000);a=b*ans;q=a+" ÷ "+b;}
+      else if(t==="sq"){a=rnd(41,99);ans=a*a;q=a+"²";}
+      else if(t==="cube"){a=rnd(8,25);ans=a*a*a;q=a+"³";}
+      else{a=rnd(200,900);b=rnd(11,40);c=rnd(100,900);ans=a*b+c;q=a+" × "+b+" + "+c;}
+    }
+    return { q:q, ans:ans, unit:"", tol:0, kind:"exact" };
+  }
+
+  // ===== MAGNITUDE (order-of-magnitude of big products/ratios, with roots) =====
+  // Scored on log10 distance: "in range" if |log10(guess/exact)| <= tolDecades.
+  function magProblem(){
+    var nNum, nDen, useRoot, tolDec;
+    if (diff===1){ nNum=rnd(2,3); nDen=rnd(1,2); useRoot=false; tolDec=0.5; }
+    else if (diff===2){ nNum=rnd(3,5); nDen=rnd(2,3); useRoot=Math.random()<0.4; tolDec=0.5; }
+    else { nNum=rnd(5,7); nDen=rnd(3,5); useRoot=Math.random()<0.6; tolDec=0.5; }
+
+    function factor(){
+      // a number spanning a few orders of magnitude, written compactly
+      var mant = (Math.round(rndf(1.1,9.9)*10)/10);
+      var exp = rnd(-4,7);
+      var val = mant*Math.pow(10,exp);
+      var s = (exp>=-1 && exp<=3) ? trimNum(val) : (mant+"e"+exp);
+      return { val:val, s:s };
+    }
+    function trimNum(v){
+      if (v>=1000 || v<0.01) return v.toExponential(1);
+      return (Math.round(v*100)/100).toString();
+    }
+
+    var numParts=[], denParts=[], numVal=1, denVal=1;
+    for (var i=0;i<nNum;i++){ var f=factor(); numParts.push(f.s); numVal*=f.val; }
+    for (var j=0;j<nDen;j++){ var g=factor(); denParts.push(g.s); denVal*=g.val; }
+
+    var rootWrap = "";
+    var ans = numVal/denVal;
+    var qcore = "(" + numParts.join(" × ") + ") / (" + denParts.join(" × ") + ")";
+    if (useRoot){
+      var rdeg = pick([2,2,3]);
+      ans = Math.pow(ans, 1/rdeg);
+      qcore = (rdeg===2?"√":("∛")) + "[ " + qcore + " ]";
+    }
+    return { q:qcore, ans:ans, unit:"Estimate the order of magnitude — answer like 3e5", tol:0, tolDec:tolDec, kind:"mag" };
+  }
+
+  // ===== PHYSICS bank, tagged by domain =====
+  var C=2.998e8, H=6.626e-34, HBAR=1.055e-34, KB=1.381e-23, NA=6.022e23, EV=1.602e-19, EPS0=8.854e-12, ME=9.109e-31, G=9.81, SIGMA=5.67e-8;
+  var bank = [
+    // ---- Ultrafast optics ----
+    { d:"ultrafast", q:"Transform-limited bandwidth of a 30 fs pulse (THz)", f:function(){return 0.44/30e-15/1e12;}, u:"Δν ≈ 0.44/Δt", t:0.25 },
+    { d:"ultrafast", q:"Spectral width of 100 fs Gaussian at 800 nm (nm)", f:function(){var dv=0.44/100e-15; return 800e-9*800e-9*dv/C*1e9;}, u:"Δλ = λ²Δν/c", t:0.3 },
+    { d:"ultrafast", q:"Period of one optical cycle at 800 nm (fs)", f:function(){return 800e-9/C*1e15;}, u:"T = λ/c", t:0.15 },
+    { d:"ultrafast", q:"Peak power: 1 nJ in 50 fs (W)", f:function(){return 1e-9/50e-15;}, u:"P ≈ E/τ", t:0.2 },
+    { d:"ultrafast", q:"Pulse energy: 1 W average at 80 MHz (nJ)", f:function(){return (1/80e6)*1e9;}, u:"E = P_avg/f_rep", t:0.15 },
+    { d:"ultrafast", q:"Intensity: 1 µJ, 100 fs, 50 µm spot (W/cm²)", f:function(){var P=1e-6/100e-15; var A=Math.PI*Math.pow(25e-4,2); return P/A;}, u:"I = P/A", t:0.4 },
+    { d:"ultrafast", q:"Photon count in a 1 µJ 800 nm pulse", f:function(){return 1e-6/(H*C/800e-9);}, u:"N = E/(hc/λ)", t:0.2 },
+    { d:"ultrafast", q:"Coherence length of 10 nm bandwidth at 800 nm (µm)", f:function(){return (800e-9*800e-9/10e-9)*1e6;}, u:"l_c ≈ λ²/Δλ", t:0.3 },
+    // ---- Nanomaterials ----
+    { d:"nano", q:"Atoms across a 5 nm particle (~0.3 nm spacing)", f:function(){return 5/0.3;}, u:"N ≈ d/a", t:0.25 },
+    { d:"nano", q:"Surface-to-volume ratio of a 10 nm sphere (nm⁻¹)", f:function(){return 3/5;}, u:"S/V = 3/r", t:0.2 },
+    { d:"nano", q:"Atoms in a 10 nm gold sphere (~59 atoms/nm³)", f:function(){return (4/3)*Math.PI*Math.pow(5,3)*59;}, u:"N = V·ρ_atomic", t:0.35 },
+    { d:"nano", q:"Quantum-dot confinement energy, 5 nm box, electron (meV)", f:function(){return (H*H/(8*ME*Math.pow(5e-9,2)))/EV*1000;}, u:"E = h²/(8mL²)", t:0.3 },
+    { d:"nano", q:"Fraction of surface atoms, 4 nm particle", f:function(){return 0.7;}, u:"≈ 0.7 for ~4 nm", t:0.4 },
+    { d:"nano", q:"Plasmon wavelength shift scale — Au NP (nm range)", f:function(){return 520;}, u:"Au sphere LSPR ≈ 520 nm", t:0.2 },
+    { d:"nano", q:"Debye length in 1 mM monovalent water, 25°C (nm)", f:function(){return 0.304/Math.sqrt(1e-3);}, u:"κ⁻¹ ≈ 0.304/√I nm", t:0.25 },
+    { d:"nano", q:"Specific surface area of 10 nm spheres, ρ=5 g/cm³ (m²/g)", f:function(){return 6/(5e3*10e-9);}, u:"SSA = 6/(ρd)", t:0.3 },
+    // ---- Energy engineering ----
+    { d:"energy", q:"Energy in 1 kg TNT (MJ)", f:function(){return 4.184;}, u:"~4.184 MJ/kg", t:0.2 },
+    { d:"energy", q:"Power of sunlight on 1 m² at noon (W)", f:function(){return 1000;}, u:"~1 kW/m² (AM1.5)", t:0.2 },
+    { d:"energy", q:"Energy of a 100 Ah 12 V battery (MJ)", f:function(){return 100*12*3600/1e6;}, u:"E = Q·V", t:0.15 },
+    { d:"energy", q:"Daily output, 5 kW panel at 20% capacity factor (kWh)", f:function(){return 5*24*0.2;}, u:"E = P·t·CF", t:0.2 },
+    { d:"energy", q:"Mass flow for 1 MW, ΔT=10K water (kg/s)", f:function(){return 1e6/(4186*10);}, u:"ṁ = Q̇/(c·ΔT)", t:0.2 },
+    { d:"energy", q:"Carnot efficiency, 800 K hot / 300 K cold (%)", f:function(){return (1-300/800)*100;}, u:"η = 1 − T_c/T_h", t:0.1 },
+    { d:"energy", q:"Energy to heat 1 L water 20→100°C (kJ)", f:function(){return 1*4.186*80;}, u:"Q = mcΔT", t:0.15 },
+    { d:"energy", q:"Hydro power: 100 m³/s over 50 m head (MW)", f:function(){return 1000*100*G*50/1e6;}, u:"P = ρQgh", t:0.2 },
+    // ---- Thermodynamics ----
+    { d:"thermo", q:"k_B·T at 300 K (meV)", f:function(){return KB*300/EV*1000;}, u:"E = k_B·T", t:0.15 },
+    { d:"thermo", q:"RT at 298 K (kJ/mol)", f:function(){return 8.314*298/1000;}, u:"RT", t:0.1 },
+    { d:"thermo", q:"Boltzmann ratio e^(−ΔE/kT), ΔE=k_BT", f:function(){return Math.exp(-1);}, u:"e^(−ΔE/kT)", t:0.15 },
+    { d:"thermo", q:"RMS speed of N₂ at 300 K (m/s)", f:function(){return Math.sqrt(3*KB*300/(28*1.66e-27));}, u:"√(3kT/m)", t:0.2 },
+    { d:"thermo", q:"Mean free path of air at STP (nm)", f:function(){return 68;}, u:"~68 nm at 1 atm", t:0.3 },
+    { d:"thermo", q:"Blackbody peak wavelength at 300 K (µm)", f:function(){return 2.898e-3/300*1e6;}, u:"λ_max = b/T", t:0.15 },
+    { d:"thermo", q:"Radiated power, 1 m² blackbody at 1000 K (kW)", f:function(){return SIGMA*Math.pow(1000,4)/1000;}, u:"P = σT⁴", t:0.2 },
+    { d:"thermo", q:"Molecules per cm³ ideal gas at STP", f:function(){return 2.69e19;}, u:"Loschmidt number", t:0.2 },
+    { d:"thermo", q:"Thermal de Broglie λ of N₂ at 300 K (pm)", f:function(){return H/Math.sqrt(2*Math.PI*28*1.66e-27*KB*300)*1e12;}, u:"Λ = h/√(2πmkT)", t:0.3 },
+    // ---- Spectroscopy (original set kept) ----
+    { d:"spectro", q:"Energy of a 532 nm photon (J)", f:function(){return H*C/532e-9;}, u:"E = hc/λ", t:0.15 },
+    { d:"spectro", q:"Photon energy at 400 nm (eV)", f:function(){return 1240/400;}, u:"E(eV) ≈ 1240/λ(nm)", t:0.15 },
+    { d:"spectro", q:"Wavenumber of 2.5 µm light (cm⁻¹)", f:function(){return 1/2.5e-4;}, u:"ν̃ = 1/λ", t:0.15 },
+    { d:"spectro", q:"Wavelength of 1600 cm⁻¹ band (µm)", f:function(){return 1e4/1600;}, u:"λ(µm)=10⁴/ν̃", t:0.15 },
+    { d:"spectro", q:"Conc (M): A=0.8, ε=15000, l=1cm", f:function(){return 0.8/15000;}, u:"A = εcl", t:0.15 },
+    { d:"spectro", q:"%T at A = 0.3", f:function(){return Math.pow(10,-0.3)*100;}, u:"T = 10^(−A)·100", t:0.15 },
+    { d:"spectro", q:"Thermal energy at 298 K (cm⁻¹)", f:function(){return KB*298/(H*C*100);}, u:"k_BT/hc", t:0.2 },
+    { d:"spectro", q:"Rotational B, I=1e-46 kg·m² (cm⁻¹)", f:function(){return H/(8*Math.PI*Math.PI*1e-46*C*100);}, u:"B = h/(8π²Ic)", t:0.25 },
+    { d:"spectro", q:"Energy of 1 mol of 500 nm photons (kJ)", f:function(){return (H*C/500e-9)*NA/1000;}, u:"E = Nₐhc/λ", t:0.2 }
+  ];
+
+  function physProblem(){
+    var pool = (domain==="all") ? bank : bank.filter(function(x){return x.d===domain;});
+    if (!pool.length) pool = bank;
+    var p = pick(pool);
+    return { q:p.q, ans:p.f(), unit:p.u, tol:p.t, kind:"phys" };
+  }
+
+  function newProblem(){
+    if (mode==="exact") current = exactProblem();
+    else if (mode==="mag") current = magProblem();
+    else current = physProblem();
+    var qEl = document.getElementById("question");
+    qEl.textContent = current.q;
+    qEl.classList.toggle("big", mode==="exact");
+    document.getElementById("unit").textContent = current.unit||"";
+    document.getElementById("qlabel").textContent =
+      mode==="exact" ? "Compute exactly" :
+      mode==="mag" ? "Estimate the order of magnitude" :
+      "Estimate the physical quantity";
+    document.getElementById("answer").value = "";
+    document.getElementById("feedback").innerHTML = "";
+  }
+
+  function refreshStats(){
+    document.getElementById("streak").textContent = streak;
+    document.getElementById("solved").textContent = solved;
+    if (mode==="exact"){ document.getElementById("avgerr").textContent = "–"; }
+    else {
+      var avg = errs.length ? errs.reduce(function(a,b){return a+b;},0)/errs.length : 0;
+      document.getElementById("avgerr").textContent = errs.length ? (avg*100).toFixed(0)+"%" : "–";
+    }
+  }
+
+  function check(){
+    if (!current) return;
+    var rawStr = document.getElementById("answer").value;
+    if (!rawStr.trim()) return;
+    var val = parseNum(rawStr);
+    var fb = document.getElementById("feedback");
+    if (isNaN(val)){ fb.innerHTML='<span class="fb-bad">Enter a number — e.g. 3.5e-19 or 2e8.</span>'; return; }
+
+    if (current.kind==="exact"){
+      if (Math.abs(val-current.ans) < 1e-6){
+        streak++; solved++; fb.innerHTML='<span class="fb-ok">Correct — '+fmt(current.ans)+'</span>';
+      } else { streak=0; fb.innerHTML='<span class="fb-bad">Not quite. Answer: '+fmt(current.ans)+'</span>'; }
+    } else if (current.kind==="mag"){
+      solved++;
+      var decades = Math.abs(Math.log(val/current.ans)/Math.LN10);
+      errs.push(Math.min(decades,3));
+      if (decades <= current.tolDec){
+        streak++;
+        fb.innerHTML='<span class="fb-ok">Within ½ decade — exact '+current.ans.toExponential(2)+' ('+decades.toFixed(1)+' decades off)</span>';
+      } else {
+        streak=0;
+        var cls = decades < 1 ? "fb-warn" : "fb-bad";
+        fb.innerHTML='<span class="'+cls+'">'+decades.toFixed(1)+' decades off — exact '+current.ans.toExponential(2)+'</span>';
+      }
+    } else {
+      var relerr = Math.abs(val-current.ans)/Math.abs(current.ans);
+      solved++; errs.push(relerr);
+      if (relerr <= current.tol){
+        streak++; fb.innerHTML='<span class="fb-ok">In range — exact '+fmt(current.ans)+' ('+(relerr*100).toFixed(0)+'% off)</span>';
+      } else {
+        streak=0; var c2 = relerr<0.5?"fb-warn":"fb-bad";
+        fb.innerHTML='<span class="'+c2+'">Off by '+(relerr*100).toFixed(0)+'% — exact '+fmt(current.ans)+'</span>';
+      }
+    }
+    save(); refreshStats();
+  }
+
+  document.getElementById("modeSeg").addEventListener("click", function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    mode=b.getAttribute("data-mode");
+    Array.prototype.forEach.call(this.children,function(c){c.classList.toggle("active",c===b);});
+    var showDiff = (mode!=="phys");
+    document.getElementById("diffSeg").style.display = showDiff?"flex":"none";
+    var showDom = (mode==="phys");
+    document.getElementById("domSeg").style.display = showDom?"flex":"none";
+    document.getElementById("domlabel").style.display = showDom?"block":"none";
+    newProblem(); refreshStats();
+  });
+  document.getElementById("diffSeg").addEventListener("click", function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    diff=parseInt(b.getAttribute("data-diff"),10);
+    Array.prototype.forEach.call(this.children,function(c){c.classList.toggle("active",c===b);});
+    if (mode!=="phys") newProblem();
+  });
+  document.getElementById("domSeg").addEventListener("click", function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    domain=b.getAttribute("data-dom");
+    Array.prototype.forEach.call(this.children,function(c){c.classList.toggle("active",c===b);});
+    newProblem();
+  });
+  document.getElementById("check").addEventListener("click", check);
+  document.getElementById("next").addEventListener("click", newProblem);
+  document.getElementById("reveal").addEventListener("click", function(){
+    if (current){
+      var a = current.kind==="mag" ? current.ans.toExponential(2) : fmt(current.ans);
+      document.getElementById("feedback").innerHTML='<span class="fb-muted">Answer: '+a+'</span>';
+    }
+  });
+  document.getElementById("answer").addEventListener("keydown", function(e){ if(e.key==="Enter") check(); });
+
+  try {
+    var icon="data:image/svg+xml;base64,"+btoa('<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" fill="#0f0f0e"/><text x="256" y="340" font-size="300" text-anchor="middle" fill="#7f77dd" font-family="Arial" font-weight="bold">∑</text></svg>');
+    var manifest={name:"Brain Trainer",short_name:"Brain Trainer",start_url:".",display:"standalone",background_color:"#0f0f0e",theme_color:"#0f0f0e",icons:[{src:icon,sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}]};
+    var mblob=new Blob([JSON.stringify(manifest)],{type:"application/json"});
+    var ml=document.createElement("link"); ml.rel="manifest"; ml.href=URL.createObjectURL(mblob); document.head.appendChild(ml);
+    var al=document.createElement("link"); al.rel="apple-touch-icon"; al.href=icon; document.head.appendChild(al);
+  } catch(e){}
+
+  if ("serviceWorker" in navigator){
+    try {
+      var swCode='self.addEventListener("install",function(e){self.skipWaiting();});self.addEventListener("activate",function(e){e.waitUntil(self.clients.claim());});self.addEventListener("fetch",function(e){e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));});';
+      var sblob=new Blob([swCode],{type:"text/javascript"});
+      navigator.serviceWorker.register(URL.createObjectURL(sblob)).catch(function(){});
+    } catch(e){}
+  }
+
+  var deferredPrompt=null;
+  window.addEventListener("beforeinstallprompt", function(e){
+    e.preventDefault(); deferredPrompt=e;
+    var btn=document.getElementById("install");
+    btn.style.display="block"; document.getElementById("hint").style.display="none";
+    btn.onclick=function(){ btn.style.display="none"; deferredPrompt.prompt(); deferredPrompt.userChoice.finally(function(){deferredPrompt=null;}); };
+  });
+  if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone){
+    document.getElementById("hint").style.display="none";
+  }
+
+  newProblem(); refreshStats();
+})();
+</script>
+</body>
+</html>
